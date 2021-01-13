@@ -1,56 +1,78 @@
 import subprocess
 import sys
 import time
+import traceback
 
 from file import File
 
+
 def main():
+    parentDir = File(sys.executable).parent
+    prefix = ('.minecraft\\' if '.minecraft' in parentDir else '') + ''
+    packagePath = prefix + 'updater\\UpdaterHotupdatePackage.exe'
+    hotupdateSignalPath = prefix + 'updater\\updater.hotupdate.signal'
+    errorSignalPath = prefix + 'updater\\updater.error.signal'
 
-    exe = File(sys.executable)
-    mainExe = '.minecraft\\updater\\NewUpdater.exe' if exe.parent.name != '.minecraft' else 'updater\\NewUpdater.exe'
-    signalFile = File('.minecraft\\updater.signal' if exe.parent.name != '.minecraft' else 'updater.signal')
+    packageFile = File(packagePath)
+    hotupdateSignalFile = File(hotupdateSignalPath)
+    errorSignalFile = File(errorSignalPath)
 
+    # 清理
+    hotupdateSignalFile.delete()
+    errorSignalFile.delete()
 
-    def check():
-        count = 60 * 5
+    def check(targetState=True, timeout=60):
+        count = timeout * 5  # seconds
         while True:
             result2 = subprocess.check_output('tasklist.exe', shell=True).decode('gb2312')
 
             found = False
             for line in result2.splitlines():
-                if 'NewUpdater.exe' in line:
+                if 'UpdaterHotupdatePackage' in line:  # UpdaterHotupdatePackage.exe
                     found = True
 
-            if not found:
+            if not found == targetState:
                 break
 
             count -= 1
             if count <= 0:
-                exit()
+                sys.exit()
 
-            print('holding.. '+str(int(count*5)/10))
+            print('holding.. '+str(int(count*5/10))+('(reversed)' if not targetState else ''))
             time.sleep(0.2)
 
+    if not packageFile.exists:
+        print('file not found: '+packageFile.windowsPath)
+        sys.exit(1)
 
-    statement = f'cd /D "{exe.parent.windowsPath}" && start {mainExe}'
+    statement = f'cd /D "{packageFile.parent.windowsPath}" && start {packageFile.name}'
+    print(statement)
     subprocess.call(statement, shell=True)
-    time.sleep(1)
-    check()
+    check(False, 15)  # 等待程序启动
+    check(timeout=10*60)
 
-    if signalFile.exists:  # 正在进行热更新
-        signalFile.delete()
+    if hotupdateSignalFile.exists:  # 正在进行热更新
+        hotupdateSignalFile.delete()
 
         print('waiting for hotupdating')
         time.sleep(3)
 
-        statement = f'cd /D "{exe.parent.windowsPath}" && start {mainExe}'
         subprocess.call(statement, shell=True)
-        time.sleep(1)
-        check()
+        check(False, 15)  # 等待程序启动
+        check(timeout=10*60)
+
+    if errorSignalFile.exists:  # 程序发生了错误
+        errorSignalFile.delete()
+
+        print('something went wrong')
+
+        sys.exit(1)
 
 
 if __name__ == '__main__':
     try:
         main()
-    except BaseException as e:
-        pass
+    except SystemExit as e:
+        raise e
+    except BaseException:
+        print(traceback.format_exc())
