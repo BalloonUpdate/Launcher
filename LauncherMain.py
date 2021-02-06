@@ -38,7 +38,7 @@ def main():
             if count <= 0:
                 sys.exit()
 
-            print('holding.. '+str(int(count*5/10))+('(reversed)' if not targetState else ''))
+            print('count down of exiting '+str(int(count*5/10))+('(reversed)' if not targetState else ''))
             time.sleep(0.2)
 
     if not packageFile.exists:
@@ -48,18 +48,18 @@ def main():
     statement = f'cd /D "{packageFile.parent.windowsPath}" && start {packageFile.name}'
     print(statement)
     subprocess.call(statement, shell=True)
-    check(False, 15)  # 等待程序启动
-    check(timeout=10*60)
+    check(False, 15)  # 等待程序启动15s内
+    check(timeout=3*60)
 
     if hotupdateSignalFile.exists:  # 正在进行热更新
         hotupdateSignalFile.delete()
 
-        print('waiting for hotupdating')
+        print('prepare to hotupdate')
         time.sleep(3)
 
         subprocess.call(statement, shell=True)
         check(False, 15)  # 等待程序启动
-        check(timeout=10*60)
+        check(timeout=3*60)
 
     if errorSignalFile.exists:  # 程序发生了错误
         errorSignalFile.delete()
@@ -76,3 +76,4 @@ if __name__ == '__main__':
         raise e
     except BaseException:
         print(traceback.format_exc())
+        File('updater.error1.log').content = traceback.format_exc()
