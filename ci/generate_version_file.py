@@ -1,9 +1,10 @@
-productName = 'UpdaterClient'
-productVersion = '2.1'
+if __name__ == "__main__":
+    from file import File
+    from version import productName, productVersion
 
-output = 'version-file.txt'
+    output = File('version-file.txt')
 
-template = f'''# UTF-8
+    template = f'''# UTF-8
 #
 # For more details about fixed file info 'ffi' see:
 # http://msdn.microsoft.com/en-us/library/ms646997.aspx
@@ -37,23 +38,22 @@ VSVersionInfo(
             StringStruct(u'Comments', u''),
             StringStruct(u'CompanyName', u''),
             StringStruct(u'FileDescription', u''),
-            StringStruct(u'FileVersion', u'1.0'),
+            StringStruct(u'FileVersion', u'1.0.0.0'),
             StringStruct(u'InternalName', u''),
             StringStruct(u'LegalCopyright', u''),
             StringStruct(u'LegalTrademarks', u''),
             StringStruct(u'OriginalFilename', u''),
             StringStruct(u'ProductName', u'{productName}'),
             StringStruct(u'ProductVersion', u'{productVersion}'),
-            StringStruct(u'Assembly Version', u'1.0')
+            StringStruct(u'Assembly Version', u'1.0.0.0')
           ]
         )
       ]),
-    VarFileInfo([VarStruct(u'Translation', [0, 1200])])
+      VarFileInfo([VarStruct(u'Translation', [0, 1200])
+    ])
   ]
 )
 '''
 
-with open(output, "w+", encoding="utf-8") as f:
-    f.write(template)
-
-print(productName+'-'+productVersion)
+    with open(output.path, "w+", encoding="utf-8") as f:
+        f.write(template)
