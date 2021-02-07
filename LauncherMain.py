@@ -22,7 +22,7 @@ def main():
     errorSignalFile.delete()
 
     def check(targetState=True, timeout=60):
-        count = timeout * 5  # seconds
+        count = timeout  # seconds
         while True:
             result2 = subprocess.check_output('tasklist.exe', shell=True).decode('gb2312')
 
@@ -38,8 +38,8 @@ def main():
             if count <= 0:
                 sys.exit()
 
-            print('count down of exiting '+str(int(count*5/10))+('(reversed)' if not targetState else ''))
-            time.sleep(0.2)
+            print('count down of force exiting '+str(int(count))+('(reversed)' if not targetState else ''))
+            time.sleep(1)
 
     if not packageFile.exists:
         print('file not found: '+packageFile.windowsPath)
