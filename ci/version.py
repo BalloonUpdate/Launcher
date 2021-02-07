@@ -1,7 +1,7 @@
 import sys
 
 productName = 'UpdaterClient'
-productVersion = '2.1.1'
+productVersion = '2.1.2'
 
 
 if __name__ == "__main__":
