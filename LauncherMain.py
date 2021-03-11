@@ -3,6 +3,9 @@ import sys
 import time
 import traceback
 
+import psutil
+
+from ci.version import productVersion
 from file import File
 
 
@@ -21,15 +24,31 @@ def main():
     hotupdateSignalFile.delete()
     errorSignalFile.delete()
 
+    # 单实例模式
+    kill = []
+    for pid_ in psutil.pids():
+        if psutil.pid_exists(pid_):
+            process = psutil.Process(pid_)
+            if process.name() in ['UpdaterClient-'+productVersion+'.exe']:
+                kill += [process]
+            if process.name() in ['UpdaterHotupdatePackage.exe']:
+                process.kill()
+    if len(kill) >= 4:
+        kill = sorted(kill, key=lambda el: el.create_time())
+        for i in kill:
+            print(i.name() + ': ' + str(i.create_time()))
+        kill[0].kill()
+        kill[1].kill()
+
     def check(targetState=True, timeout=60):
         count = timeout  # seconds
         while True:
-            result2 = subprocess.check_output('tasklist.exe', shell=True).decode('gb2312')
-
-            found = False
-            for line in result2.splitlines():
-                if 'UpdaterHotupdatePackage' in line:  # UpdaterHotupdatePackage.exe
-                    found = True
+            processes = [
+                psutil.Process(pid=pid).name()
+                for pid in psutil.pids()
+                if psutil.pid_exists(pid)
+            ]
+            found = 'UpdaterHotupdatePackage.exe' in processes
 
             if not found == targetState:
                 break
@@ -48,8 +67,8 @@ def main():
     statement = f'cd /D "{packageFile.parent.windowsPath}" && start {packageFile.name}'
     print(statement)
     subprocess.call(statement, shell=True)
-    check(False, 15)  # 等待程序启动15s内
-    check(timeout=3*60)
+    check(False, 5)  # 等待程序启动5s内
+    check(timeout=6*60)
 
     if hotupdateSignalFile.exists:  # 正在进行热更新
         hotupdateSignalFile.delete()
@@ -58,8 +77,8 @@ def main():
         time.sleep(3)
 
         subprocess.call(statement, shell=True)
-        check(False, 15)  # 等待程序启动
-        check(timeout=3*60)
+        check(False, 5)  # 等待程序启动
+        check(timeout=6*60)
 
     if errorSignalFile.exists:  # 程序发生了错误
         errorSignalFile.delete()
