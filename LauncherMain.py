@@ -64,7 +64,8 @@ def main():
         print('file not found: '+packageFile.windowsPath)
         sys.exit(1)
 
-    statement = f'cd /D "{packageFile.parent.windowsPath}" && start {packageFile.name}'
+    params = ' '.join(sys.argv[1:])
+    statement = f'cd /D "{packageFile.parent.windowsPath}" && start {packageFile.name} ' + params
     print(statement)
     subprocess.call(statement, shell=True)
     check(False, 5)  # 等待程序启动5s内
