@@ -13,7 +13,7 @@ del temp.txt
 del /f /s /q dist\%filename%.exe
 
 echo ----------------Build for %filename%----------------
-pyinstaller --noconfirm --version-file version-file.txt -i icon.ico -c -F -n %filename% LauncherMain.py %1
+pyinstaller --noconfirm --version-file version-file.txt -i icon.ico -c -F -n %filename% main.py %1
 
 echo ----------------Clean up----------------
 

@@ -1,2 +1,2 @@
-PyInstaller==4.2
 psutil==5.8.0
+pywin32~=301
